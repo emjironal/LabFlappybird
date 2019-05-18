@@ -33,6 +33,9 @@ public class Flappybird extends ApplicationAdapter {
 	float puntosX;
 	ArrayList<Pipe> topPipes;
 	ArrayList<Pipe> bottomPipes;
+	float distanciaEntrePipes;
+	float distanciaEntrePipesTopBottom;
+	float velocidadPipes;
 	
 	@Override
 	public void create ()
@@ -56,7 +59,7 @@ public class Flappybird extends ApplicationAdapter {
 		birdX = (width / 2) - (bird.getWidth() / 2);
 		birdY = (height / 2) - (bird.getHeight() / 2);
 		isBird2 = false;
-		gravity = height / 5000;
+		setGravity(height / 5000);
 		velocity = 0;
 		//Puntuación
 		font = new BitmapFont();
@@ -69,15 +72,37 @@ public class Flappybird extends ApplicationAdapter {
 		float pipeHeight = pipeBottom.getHeight();
 		float pipeWidth = pipeBottom.getWidth();
 		topPipes = new ArrayList<Pipe>();
-		topPipes.add(new Pipe(pipeTop, 100, 100));//usar /numero para definir más estandar y  más facilidad
-		topPipes.add(new Pipe(pipeTop, 200, 100));
-		topPipes.add(new Pipe(pipeTop, 300, 100));
-		topPipes.add(new Pipe(pipeTop, 400, 100));
 		bottomPipes = new ArrayList<Pipe>();
-		bottomPipes.add(new Pipe(pipeBottom, 100, -100));
-		bottomPipes.add(new Pipe(pipeBottom, 200, -100));
-		bottomPipes.add(new Pipe(pipeBottom, 300, -100));
-		bottomPipes.add(new Pipe(pipeBottom, 400, -100));
+		float temp = Gdx.graphics.getWidth();
+		setDistanciaEntrePipes(300F);
+		temp += pipeTop.getWidth() + distanciaEntrePipes;
+		topPipes.add(new Pipe(pipeTop, temp, 100));//usar /numero para definir más estandar y  más facilidad
+		bottomPipes.add(new Pipe(pipeBottom, temp, -100));
+		temp += pipeTop.getWidth() + distanciaEntrePipes;
+		topPipes.add(new Pipe(pipeTop, temp, 100));
+		bottomPipes.add(new Pipe(pipeBottom, temp, -100));
+		temp += pipeTop.getWidth() + distanciaEntrePipes;
+		topPipes.add(new Pipe(pipeTop, temp, 100));
+		bottomPipes.add(new Pipe(pipeBottom, temp, -100));
+		temp += pipeTop.getWidth() + distanciaEntrePipes;
+		topPipes.add(new Pipe(pipeTop, temp, 100));
+		bottomPipes.add(new Pipe(pipeBottom, temp, -100));
+		velocidadPipes = 5F;
+	}
+
+	public void setDistanciaEntrePipesTopBottom(float valor)
+	{
+		distanciaEntrePipesTopBottom = valor;
+	}
+
+	private void setGravity(float valor)
+	{
+		gravity = valor;
+	}
+
+	private void setDistanciaEntrePipes(float valor)
+	{
+		distanciaEntrePipes = valor;
 	}
 
 	@Override
@@ -99,10 +124,23 @@ public class Flappybird extends ApplicationAdapter {
 		drawPipes(topPipes);
 		drawPipes(bottomPipes);
 		moverBird();
-		//moverPipes(topPipes);
-		//moverPipes(bottomPipes);
+		moverPipes(topPipes);
+		moverPipes(bottomPipes);
 		isBird2 = !isBird2;
 		batch.end();
+	}
+
+	private void setYPipes()
+	{
+		for(int i = 0; i < topPipes.size(); i++)
+		{
+			Pipe top = topPipes.get(i);
+			Pipe bottom = bottomPipes.get(i);
+			/*float y1 = ;
+			float y2 = ;
+			top.setY();
+			bottom.setY();*/
+		}
 	}
 
 	private void logMessage(String message)
@@ -123,7 +161,11 @@ public class Flappybird extends ApplicationAdapter {
 		for(Pipe pipe : pipes)
 		{
 			float x = pipe.getX();
-			x -= 10;
+			x -= velocidadPipes;
+			if(x <= -pipe.getPipe().getWidth())
+			{
+				x = Gdx.graphics.getWidth() + distanciaEntrePipes + distanciaEntrePipes;
+			}
 			pipe.setX(x);
 		}
 	}
