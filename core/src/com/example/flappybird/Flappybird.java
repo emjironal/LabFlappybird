@@ -41,26 +41,27 @@ public class Flappybird extends ApplicationAdapter {
 	public void create ()
 	{
 		batch = new SpriteBatch();
-		//Imagenes
+		//Imágenes
 		background = new Texture("bg.png");
 		logMessage(String.format("BG Width: %d Height: %d",background.getWidth(), background.getHeight()));
 		bird = new Texture("bird.png");
-		logMessage(String.format("Bird Width: %d Height: %d",background.getWidth(), background.getHeight()));
+		logMessage(String.format("Bird Width: %d Height: %d",bird.getWidth(), bird.getHeight()));
 		bird2 =  new Texture("bird2.png");
 		pipeBottom = new Texture("bottomtube.png");
-		logMessage(String.format("Bottom pipe Width: %d Height: %d",background.getWidth(), background.getHeight()));
+		logMessage(String.format("Bottom pipe Width: %d Height: %d",pipeBottom.getWidth(), pipeBottom.getHeight()));
 		pipeTop = new Texture("toptube.png");
-		logMessage(String.format("Top pipe Width: %d Height: %d",background.getWidth(), background.getHeight()));
+		logMessage(String.format("Top pipe Width: %d Height: %d",pipeTop.getWidth(), pipeTop.getHeight()));
 		gameOver = new Texture("game_over.png");
-		logMessage(String.format("Game over Width: %d Height: %d",background.getWidth(), background.getHeight()));
-		//X Y
+		logMessage(String.format("Game over Width: %d Height: %d",gameOver.getWidth(), gameOver.getHeight()));
+		//Bird
 		width = Gdx.graphics.getWidth();
 		height = Gdx.graphics.getHeight();
-		birdX = (width / 2) - (bird.getWidth() / 2);
-		birdY = (height / 2) - (bird.getHeight() / 2);
+		birdX = (width / 2F) - (bird.getWidth() / 2F);
+		birdY = (height / 2F) - (bird.getHeight() / 2F);
 		isBird2 = false;
-		setGravity(height / 5000);
-		velocity = 0;
+		//Gravedad
+		setGravity(height / 5000F);
+		velocity = 0F;
 		//Puntuación
 		font = new BitmapFont();
 		font.setColor(Color.WHITE);
@@ -69,24 +70,19 @@ public class Flappybird extends ApplicationAdapter {
 		puntosX = 10F;
 		puntosY = 75F;
 		//Pipes
-		float pipeHeight = pipeBottom.getHeight();
-		float pipeWidth = pipeBottom.getWidth();
+		setDistanciaEntrePipes(400F);
+		setDistanciaEntrePipesTopBottom(400F);
 		topPipes = new ArrayList<Pipe>();
 		bottomPipes = new ArrayList<Pipe>();
 		float temp = Gdx.graphics.getWidth();
-		setDistanciaEntrePipes(300F);
-		temp += pipeTop.getWidth() + distanciaEntrePipes;
-		topPipes.add(new Pipe(pipeTop, temp, 100));//usar /numero para definir más estandar y  más facilidad
-		bottomPipes.add(new Pipe(pipeBottom, temp, -100));
-		temp += pipeTop.getWidth() + distanciaEntrePipes;
-		topPipes.add(new Pipe(pipeTop, temp, 100));
-		bottomPipes.add(new Pipe(pipeBottom, temp, -100));
-		temp += pipeTop.getWidth() + distanciaEntrePipes;
-		topPipes.add(new Pipe(pipeTop, temp, 100));
-		bottomPipes.add(new Pipe(pipeBottom, temp, -100));
-		temp += pipeTop.getWidth() + distanciaEntrePipes;
-		topPipes.add(new Pipe(pipeTop, temp, 100));
-		bottomPipes.add(new Pipe(pipeBottom, temp, -100));
+		for(int i = 0; i < 3; i++)
+		{
+			temp += pipeTop.getWidth() + distanciaEntrePipes;
+			topPipes.add(new Pipe(pipeTop, temp, 100));//usar /numero para definir más estandar y  más facilidad
+			bottomPipes.add(new Pipe(pipeBottom, temp, -100));
+			setYPipes(topPipes.get(i), bottomPipes.get(i));
+		}
+
 		velocidadPipes = 5F;
 	}
 
@@ -124,23 +120,22 @@ public class Flappybird extends ApplicationAdapter {
 		drawPipes(topPipes);
 		drawPipes(bottomPipes);
 		moverBird();
-		moverPipes(topPipes);
-		moverPipes(bottomPipes);
+		moverPipes();
 		isBird2 = !isBird2;
 		batch.end();
 	}
 
-	private void setYPipes()
+	private void setYPipes(Pipe top, Pipe bottom)
 	{
-		for(int i = 0; i < topPipes.size(); i++)
-		{
-			Pipe top = topPipes.get(i);
-			Pipe bottom = bottomPipes.get(i);
-			/*float y1 = ;
-			float y2 = ;
-			top.setY();
-			bottom.setY();*/
-		}
+		Random random = new Random();
+		Integer rnd = random.nextInt(51) + 20;
+		float yBottom = Float.parseFloat(rnd.toString() + ".0");
+		yBottom -= 100F;
+		yBottom /= 80F;
+		yBottom *= bottom.getPipe().getHeight();
+		float yTop = yBottom + bottom.getPipe().getHeight() + distanciaEntrePipesTopBottom;
+		top.setY(yTop);
+		bottom.setY(yBottom);
 	}
 
 	private void logMessage(String message)
@@ -156,17 +151,26 @@ public class Flappybird extends ApplicationAdapter {
 		}
 	}
 
-	private void moverPipes(ArrayList<Pipe> pipes)
+	private void moverPipes()
 	{
-		for(Pipe pipe : pipes)
+		for(int i = 0; i < topPipes.size(); i++)
 		{
-			float x = pipe.getX();
+			Pipe top = topPipes.get(i);
+			Pipe bottom = bottomPipes.get(i);
+			float x = top.getX();
 			x -= velocidadPipes;
-			if(x <= -pipe.getPipe().getWidth())
+			if(x <= -bottom.getPipe().getWidth())
 			{
-				x = Gdx.graphics.getWidth() + distanciaEntrePipes + distanciaEntrePipes;
+				if(i == 0)
+					x = bottomPipes.get(2).getX() + distanciaEntrePipes + bottom.getPipe().getWidth();
+				else if(i == 1)
+					x = bottomPipes.get(0).getX() + distanciaEntrePipes + bottom.getPipe().getWidth();
+				else
+					x = bottomPipes.get(1).getX() + distanciaEntrePipes + bottom.getPipe().getWidth();
+				setYPipes(top, bottom);
 			}
-			pipe.setX(x);
+			top.setX(x);
+			bottom.setX(x);
 		}
 	}
 
@@ -174,8 +178,8 @@ public class Flappybird extends ApplicationAdapter {
 	{
 		if(Gdx.input.justTouched())
 		{
-			birdY += height / 10;
-			velocity = 0;
+			birdY += height / 10F;
+			velocity = 0F;
 		}
 		else
 		{
