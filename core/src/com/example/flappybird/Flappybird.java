@@ -36,6 +36,7 @@ public class Flappybird extends ApplicationAdapter {
 	float distanciaEntrePipes;
 	float distanciaEntrePipesTopBottom;
 	float velocidadPipes;
+	boolean gameStarted;
 	
 	@Override
 	public void create ()
@@ -82,11 +83,11 @@ public class Flappybird extends ApplicationAdapter {
 			bottomPipes.add(new Pipe(pipeBottom, temp, -100));
 			setYPipes(topPipes.get(i), bottomPipes.get(i));
 		}
-
 		velocidadPipes = 5F;
+		gameStarted = false;
 	}
 
-	public void setDistanciaEntrePipesTopBottom(float valor)
+	private void setDistanciaEntrePipesTopBottom(float valor)
 	{
 		distanciaEntrePipesTopBottom = valor;
 	}
@@ -106,6 +107,8 @@ public class Flappybird extends ApplicationAdapter {
 	{
 		Gdx.gl.glClearColor(1, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		if(!gameStarted)
+			gameStarted = Gdx.input.justTouched();
 		batch.begin();
 		batch.draw(background, 0, 0, width, height);
 		font.draw(batch, puntos.toString(), puntosX, puntosY);
@@ -117,10 +120,13 @@ public class Flappybird extends ApplicationAdapter {
 		{
 			batch.draw(bird, birdX, birdY);
 		}
-		drawPipes(topPipes);
-		drawPipes(bottomPipes);
-		moverBird();
-		moverPipes();
+		if(gameStarted)
+		{
+			moverBird();
+			moverPipes();
+			drawPipes(topPipes);
+			drawPipes(bottomPipes);
+		}
 		isBird2 = !isBird2;
 		batch.end();
 	}
