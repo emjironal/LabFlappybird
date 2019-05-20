@@ -8,98 +8,55 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import java.awt.TextComponent;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Flappybird extends ApplicationAdapter {
-	SpriteBatch batch;
-	Texture background;
-	Texture bird;
-	Texture bird2;
-	Texture pipeTop;
-	Texture pipeBottom;
-	Texture gameOver;
-	float width;
-	float height;
-	float birdX;
-	float birdY;
-	boolean isBird2;
-	float gravity;
-	float velocity;
-	BitmapFont font;
-	Integer puntos;
-	float puntosY;
-	float puntosX;
-	ArrayList<Pipe> topPipes;
-	ArrayList<Pipe> bottomPipes;
-	float distanciaEntrePipes;
-	float distanciaEntrePipesTopBottom;
-	float velocidadPipes;
-	boolean gameStarted;
+public class Flappybird extends ApplicationAdapter
+{
+	private SpriteBatch batch;
+    private Texture background;
+    private Texture bird;
+    private Texture bird2;
+    private Texture pipeTop;
+    private Texture pipeBottom;
+    private Texture gameOver;
+    private float width;
+    private float height;
+    private float birdX;
+    private float birdY;
+    private boolean isBird2;
+    private float gravity;
+    private float velocity;
+    private BitmapFont font;
+    private Integer puntos;
+    private float puntosY;
+    private float puntosX;
+    private ArrayList<Pipe> topPipes;
+    private ArrayList<Pipe> bottomPipes;
+    private float distanciaEntrePipes;
+    private float distanciaEntrePipesTopBottom;
+    private float velocidadPipes;
+    private boolean gameStarted;
 	
 	@Override
 	public void create ()
 	{
 		batch = new SpriteBatch();
 		//Imágenes
-		background = new Texture("bg.png");
-		logMessage(String.format("BG Width: %d Height: %d",background.getWidth(), background.getHeight()));
-		bird = new Texture("bird.png");
-		logMessage(String.format("Bird Width: %d Height: %d",bird.getWidth(), bird.getHeight()));
-		bird2 =  new Texture("bird2.png");
-		pipeBottom = new Texture("bottomtube.png");
-		logMessage(String.format("Bottom pipe Width: %d Height: %d",pipeBottom.getWidth(), pipeBottom.getHeight()));
-		pipeTop = new Texture("toptube.png");
-		logMessage(String.format("Top pipe Width: %d Height: %d",pipeTop.getWidth(), pipeTop.getHeight()));
-		gameOver = new Texture("game_over.png");
-		logMessage(String.format("Game over Width: %d Height: %d",gameOver.getWidth(), gameOver.getHeight()));
+		initializeTextures();
 		//Bird
-		width = Gdx.graphics.getWidth();
-		height = Gdx.graphics.getHeight();
-		birdX = (width / 2F) - (bird.getWidth() / 2F);
-		birdY = (height / 2F) - (bird.getHeight() / 2F);
-		isBird2 = false;
+		initializeBird();
 		//Gravedad
 		setGravity(height / 5000F);
 		velocity = 0F;
 		//Puntuación
-		font = new BitmapFont();
-		font.setColor(Color.WHITE);
-		font.getData().setScale(5);
-		puntos = 0;
-		puntosX = 10F;
-		puntosY = 75F;
+        initializePuntos();
 		//Pipes
 		setDistanciaEntrePipes(400F);
 		setDistanciaEntrePipesTopBottom(400F);
-		topPipes = new ArrayList<Pipe>();
-		bottomPipes = new ArrayList<Pipe>();
-		float temp = Gdx.graphics.getWidth();
-		for(int i = 0; i < 3; i++)
-		{
-			temp += pipeTop.getWidth() + distanciaEntrePipes;
-			topPipes.add(new Pipe(pipeTop, temp, 100));//usar /numero para definir más estandar y  más facilidad
-			bottomPipes.add(new Pipe(pipeBottom, temp, -100));
-			setYPipes(topPipes.get(i), bottomPipes.get(i));
-		}
-		velocidadPipes = 5F;
+        initializePipes(3);
+		setVelocidadPipes(5F);
 		gameStarted = false;
-	}
-
-	private void setDistanciaEntrePipesTopBottom(float valor)
-	{
-		distanciaEntrePipesTopBottom = valor;
-	}
-
-	private void setGravity(float valor)
-	{
-		gravity = valor;
-	}
-
-	private void setDistanciaEntrePipes(float valor)
-	{
-		distanciaEntrePipes = valor;
 	}
 
 	@Override
@@ -131,33 +88,15 @@ public class Flappybird extends ApplicationAdapter {
 		batch.end();
 	}
 
-	private void setYPipes(Pipe top, Pipe bottom)
-	{
-		Random random = new Random();
-		Integer rnd = random.nextInt(51) + 20;
-		float yBottom = Float.parseFloat(rnd.toString() + ".0");
-		yBottom -= 100F;
-		yBottom /= 80F;
-		yBottom *= bottom.getPipe().getHeight();
-		float yTop = yBottom + bottom.getPipe().getHeight() + distanciaEntrePipesTopBottom;
-		top.setY(yTop);
-		bottom.setY(yBottom);
-	}
+    private void drawPipes(ArrayList<Pipe> pipes)
+    {
+        for(Pipe pipe : pipes)
+        {
+            batch.draw(pipe.getPipe(), pipe.getX(), pipe.getY());
+        }
+    }
 
-	private void logMessage(String message)
-	{
-		Gdx.app.log("Textures", message);
-	}
-
-	private void drawPipes(ArrayList<Pipe> pipes)
-	{
-		for(Pipe pipe : pipes)
-		{
-			batch.draw(pipe.getPipe(), pipe.getX(), pipe.getY());
-		}
-	}
-
-	private void moverPipes()
+    private void moverPipes()
 	{
 		for(int i = 0; i < topPipes.size(); i++)
 		{
@@ -193,8 +132,94 @@ public class Flappybird extends ApplicationAdapter {
 			birdY -= velocity;
 		}
 	}
-	
-	@Override
+
+    private void initializeTextures()
+    {
+        background = new Texture("bg.png");
+        logMessage(String.format("BG Width: %d Height: %d",background.getWidth(), background.getHeight()));
+        bird = new Texture("bird.png");
+        logMessage(String.format("Bird Width: %d Height: %d",bird.getWidth(), bird.getHeight()));
+        bird2 =  new Texture("bird2.png");
+        pipeBottom = new Texture("bottomtube.png");
+        logMessage(String.format("Bottom pipe Width: %d Height: %d",pipeBottom.getWidth(), pipeBottom.getHeight()));
+        pipeTop = new Texture("toptube.png");
+        logMessage(String.format("Top pipe Width: %d Height: %d",pipeTop.getWidth(), pipeTop.getHeight()));
+        gameOver = new Texture("game_over.png");
+        logMessage(String.format("Game over Width: %d Height: %d",gameOver.getWidth(), gameOver.getHeight()));
+    }
+
+    private void initializeBird()
+    {
+        width = Gdx.graphics.getWidth();
+        height = Gdx.graphics.getHeight();
+        birdX = (width / 2F) - (bird.getWidth() / 2F);
+        birdY = (height / 2F) - (bird.getHeight() / 2F);
+        isBird2 = false;
+    }
+
+    private void initializePuntos()
+    {
+        font = new BitmapFont();
+        font.setColor(Color.WHITE);
+        font.getData().setScale(5);
+        puntos = 0;
+        puntosX = 10F;
+        puntosY = 75F;
+    }
+
+    private void initializePipes(int cantidad)
+    {
+        topPipes = new ArrayList<Pipe>();
+        bottomPipes = new ArrayList<Pipe>();
+        float temp = Gdx.graphics.getWidth();
+        for(int i = 0; i < cantidad; i++)
+        {
+            temp += pipeTop.getWidth() + distanciaEntrePipes;
+            topPipes.add(new Pipe(pipeTop, temp, 100));//usar /numero para definir más estandar y  más facilidad
+            bottomPipes.add(new Pipe(pipeBottom, temp, -100));
+            setYPipes(topPipes.get(i), bottomPipes.get(i));
+        }
+    }
+
+    private void setVelocidadPipes(float valor)
+    {
+        velocidadPipes = valor;
+    }
+
+    private void setDistanciaEntrePipesTopBottom(float valor)
+    {
+        distanciaEntrePipesTopBottom = valor;
+    }
+
+    private void setGravity(float valor)
+    {
+        gravity = valor;
+    }
+
+    private void setDistanciaEntrePipes(float valor)
+    {
+        distanciaEntrePipes = valor;
+    }
+
+    private void setYPipes(Pipe top, Pipe bottom)
+    {
+        Random random = new Random();
+        Integer rnd = random.nextInt(51) + 20;
+        float yBottom = Float.parseFloat(rnd.toString() + ".0");
+        yBottom -= 100F;
+        yBottom /= 80F;
+        yBottom *= bottom.getPipe().getHeight();
+        float yTop = yBottom + bottom.getPipe().getHeight() + distanciaEntrePipesTopBottom;
+        top.setY(yTop);
+        bottom.setY(yBottom);
+    }
+
+    private void logMessage(String message)
+    {
+        Gdx.app.log("Textures", message);
+    }
+
+    @Override
 	public void dispose ()
 	{
 		batch.dispose();
@@ -204,5 +229,6 @@ public class Flappybird extends ApplicationAdapter {
 		pipeBottom.dispose();
 		pipeTop.dispose();
 		gameOver.dispose();
+		font.dispose();
 	}
 }
