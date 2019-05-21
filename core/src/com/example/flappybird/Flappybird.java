@@ -1,6 +1,7 @@
 package com.example.flappybird;
 
 import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
@@ -56,7 +57,11 @@ public class Flappybird extends ApplicationAdapter
 	public void create ()
 	{
 		batch = new SpriteBatch();
-		choque = new Gdx.audio.newSound(Gdx.files.getFileHandle(""))
+		choque = Gdx.audio.newSound(Gdx.files.getFileHandle("angry-birds.mp3", Files.FileType.Internal));
+		hacerPunto = Gdx.audio.newSound(Gdx.files.getFileHandle("flappy-bird-sms.mp3", Files.FileType.Internal));
+		music = Gdx.audio.newMusic(Gdx.files.getFileHandle("angry-birds-videojuegos.mp3", Files.FileType.Internal));
+		music.play();
+		music.setLooping(true);
         initialize();
 	}
 
@@ -106,6 +111,7 @@ public class Flappybird extends ApplicationAdapter
 
     private void perder()
     {
+        choque.play();
         initialize();
         perdio = true;
     }
@@ -143,7 +149,10 @@ public class Flappybird extends ApplicationAdapter
             if(birdX <= tempX && tempX <= birdX + bird.getWidth())
             {
                 if(!isPunto.get(i))
+                {
                     puntos++;
+                    hacerPunto.play();
+                }
                 isPunto.set(i, true);
             }
 			else
@@ -301,5 +310,8 @@ public class Flappybird extends ApplicationAdapter
 		pipeTop.dispose();
 		gameOver.dispose();
 		font.dispose();
+		music.dispose();
+		choque.dispose();
+		hacerPunto.dispose();
 	}
 }
