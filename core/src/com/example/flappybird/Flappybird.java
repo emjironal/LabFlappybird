@@ -51,6 +51,7 @@ public class Flappybird extends ApplicationAdapter
     private ArrayList<Boolean> isPunto;
     private Sound choque;
     private Sound hacerPunto;
+    private Sound jump;
     private Music music;
 	
 	@Override
@@ -59,6 +60,7 @@ public class Flappybird extends ApplicationAdapter
 		batch = new SpriteBatch();
 		choque = Gdx.audio.newSound(Gdx.files.getFileHandle("angry-birds.mp3", Files.FileType.Internal));
 		hacerPunto = Gdx.audio.newSound(Gdx.files.getFileHandle("flappy-bird-sms.mp3", Files.FileType.Internal));
+        jump = Gdx.audio.newSound(Gdx.files.getFileHandle("mario-bros-jump.mp3", Files.FileType.Internal));
 		music = Gdx.audio.newMusic(Gdx.files.getFileHandle("angry-birds-videojuegos.mp3", Files.FileType.Internal));
 		music.play();
 		music.setLooping(true);
@@ -173,6 +175,7 @@ public class Flappybird extends ApplicationAdapter
 			birdY += height / 10F;
 			velocity = 0F;
 			birdFigura.mover(0F, height / 10F);
+            jump.play();
 		}
 		else
 		{
@@ -313,5 +316,6 @@ public class Flappybird extends ApplicationAdapter
 		music.dispose();
 		choque.dispose();
 		hacerPunto.dispose();
+		jump.dispose();
 	}
 }
