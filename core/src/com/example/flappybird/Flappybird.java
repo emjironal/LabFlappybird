@@ -7,6 +7,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Box2D;
+import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -37,26 +41,17 @@ public class Flappybird extends ApplicationAdapter
     private float distanciaEntrePipesTopBottom;
     private float velocidadPipes;
     private boolean gameStarted;
+    private Figura birdFigura;
+    private ArrayList<Figura> topPipesFigura;
+    private ArrayList<Figura> bottomPipesFigura;
+    private boolean perdio;
+    private ArrayList<Boolean> isPunto;
 	
 	@Override
 	public void create ()
 	{
 		batch = new SpriteBatch();
-		//Imágenes
-		initializeTextures();
-		//Bird
-		initializeBird();
-		//Gravedad
-		setGravity(height / 5000F);
-		velocity = 0F;
-		//Puntuación
-        initializePuntos();
-		//Pipes
-		setDistanciaEntrePipes(400F);
-		setDistanciaEntrePipesTopBottom(400F);
-        initializePipes(3);
-		setVelocidadPipes(5F);
-		gameStarted = false;
+        initialize();
 	}
 
 	@Override
@@ -68,23 +63,30 @@ public class Flappybird extends ApplicationAdapter
 			gameStarted = Gdx.input.justTouched();
 		batch.begin();
 		batch.draw(background, 0, 0, width, height);
-		font.draw(batch, puntos.toString(), puntosX, puntosY);
-		if(isBird2)
-		{
-			batch.draw(bird2, birdX, birdY);
-		}
+		if(perdio && !gameStarted)
+        {
+            batch.draw(gameOver, (width / 2F) - (gameOver.getWidth() / 2F), (height / 2F) - (gameOver.getHeight() / 2F));
+        }
 		else
-		{
-			batch.draw(bird, birdX, birdY);
-		}
-		if(gameStarted)
-		{
-			moverBird();
-			moverPipes();
-			drawPipes(topPipes);
-			drawPipes(bottomPipes);
-		}
-		isBird2 = !isBird2;
+        {
+            if(gameStarted)
+            {
+                moverBird();
+                moverPipes();
+                drawPipes(topPipes);
+                drawPipes(bottomPipes);
+            }
+            font.draw(batch, puntos.toString(), puntosX, puntosY);
+            if(isBird2)
+            {
+                batch.draw(bird2, birdX, birdY);
+            }
+            else
+            {
+                batch.draw(bird, birdX, birdY);
+            }
+            isBird2 = !isBird2;
+        }
 		batch.end();
 	}
 
@@ -96,6 +98,17 @@ public class Flappybird extends ApplicationAdapter
         }
     }
 
+    private void perder()
+    {
+        initialize();
+        perdio = true;
+    }
+
+    private boolean checkCollision(Figura pipe)
+    {
+        return birdFigura.contacto(pipe);
+    }
+
     private void moverPipes()
 	{
 		for(int i = 0; i < topPipes.size(); i++)
@@ -103,6 +116,8 @@ public class Flappybird extends ApplicationAdapter
 			Pipe top = topPipes.get(i);
 			Pipe bottom = bottomPipes.get(i);
 			float x = top.getX();
+			float tempX = x;
+            float tempTopY = top.getY(), tempBottomY = bottom.getY();
 			x -= velocidadPipes;
 			if(x <= -bottom.getPipe().getWidth())
 			{
@@ -116,6 +131,23 @@ public class Flappybird extends ApplicationAdapter
 			}
 			top.setX(x);
 			bottom.setX(x);
+            topPipesFigura.get(i).mover(x - tempX, top.getY()- tempTopY);
+            bottomPipesFigura.get(i).mover(x - tempX, bottom.getY()- tempBottomY);
+            tempX = x + (pipeTop.getWidth() / 2F);
+            if(birdX <= tempX && tempX <= birdX + bird.getWidth())
+            {
+                if(!isPunto.get(i))
+                    puntos++;
+                isPunto.set(i, true);
+            }
+			else
+            {
+                isPunto.set(i, false);
+            }
+            if(checkCollision(topPipesFigura.get(i)) || checkCollision(bottomPipesFigura.get(i)))
+            {
+                perder();
+            }
 		}
 	}
 
@@ -125,13 +157,39 @@ public class Flappybird extends ApplicationAdapter
 		{
 			birdY += height / 10F;
 			velocity = 0F;
+			birdFigura.mover(0F, height / 10F);
 		}
 		else
 		{
 			velocity += gravity;
 			birdY -= velocity;
+            birdFigura.mover(0F, -velocity);
 		}
+		if(birdY <= 0)
+        {
+            perder();
+        }
 	}
+
+	private void initialize()
+    {
+        //Imágenes
+        initializeTextures();
+        //Bird
+        initializeBird();
+        //Gravedad
+        setGravity(height / 5000F);
+        velocity = 0F;
+        //Puntuación
+        initializePuntos();
+        //Pipes
+        setDistanciaEntrePipes(400F);
+        setDistanciaEntrePipesTopBottom(400F);
+        initializePipes(3);
+        setVelocidadPipes(5F);
+        gameStarted = false;
+        perdio = false;
+    }
 
     private void initializeTextures()
     {
@@ -154,6 +212,7 @@ public class Flappybird extends ApplicationAdapter
         height = Gdx.graphics.getHeight();
         birdX = (width / 2F) - (bird.getWidth() / 2F);
         birdY = (height / 2F) - (bird.getHeight() / 2F);
+        birdFigura = new Figura(bird, birdX, birdY);
         isBird2 = false;
     }
 
@@ -165,19 +224,25 @@ public class Flappybird extends ApplicationAdapter
         puntos = 0;
         puntosX = 10F;
         puntosY = 75F;
+        isPunto = new ArrayList<Boolean>();
     }
 
     private void initializePipes(int cantidad)
     {
         topPipes = new ArrayList<Pipe>();
         bottomPipes = new ArrayList<Pipe>();
+        topPipesFigura = new ArrayList<Figura>();
+        bottomPipesFigura = new ArrayList<Figura>();
         float temp = Gdx.graphics.getWidth();
         for(int i = 0; i < cantidad; i++)
         {
             temp += pipeTop.getWidth() + distanciaEntrePipes;
-            topPipes.add(new Pipe(pipeTop, temp, 100));//usar /numero para definir más estandar y  más facilidad
+            topPipes.add(new Pipe(pipeTop, temp, 100));
             bottomPipes.add(new Pipe(pipeBottom, temp, -100));
             setYPipes(topPipes.get(i), bottomPipes.get(i));
+            topPipesFigura.add(new Figura(pipeTop, topPipes.get(i).getX(), topPipes.get(i).getY(), 1000000F));
+            bottomPipesFigura.add(new Figura(pipeBottom, bottomPipes.get(i).getX(), bottomPipes.get(i).getY()));
+            isPunto.add(false);
         }
     }
 
